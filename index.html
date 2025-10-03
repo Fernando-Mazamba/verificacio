@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verificador de Certificados - ProCert International</title>
+  <style>
+    /* Variables CSS para coherencia con el sitio principal */
+    :root {
+      --color-primary: #2563eb;
+      --color-primary-dark: #1d4ed8;
+      --color-secondary: #7c3aed;
+      --color-accent: #06b6d4;
+      --color-text: #1f2937;
+      --color-text-light: #6b7280;
+      --color-bg: #f9fafb;
+      --color-bg-alt: #ffffff;
+      --color-border: #e5e7eb;
+      --color-success: #10b981;
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --spacing-xl: 3rem;
+      --spacing-xxl: 4rem;
+      
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+      --font-size-4xl: 2.25rem;
+      --font-size-5xl: 3rem;
+      
+      --transition-base: all 0.2s ease;
+    }
+
+    /* Estilos base */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+      color: var(--color-text);
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      transition: var(--transition-base);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background-color: var(--color-bg-alt);
+      box-shadow: var(--shadow-sm);
+      padding: var(--spacing-sm) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      text-decoration: none;
+      color: var(--color-text);
+    }
+
+    .logo img {
+      height: 45px;
+      width: auto;
+    }
+
+    .logo-text {
+      font-weight: 700;
+      font-size: var(--font-size-xl);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav {
+      display: flex;
+      gap: var(--spacing-lg);
+    }
+
+    .nav-link {
+      color: var(--color-text);
+      text-decoration: none;
+      font-weight: 500;
+      padding: var(--spacing-xs) 0;
+      position: relative;
+      transition: var(--transition-base);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--color-primary);
+      transition: width 0.3s ease;
+    }
+
+    .nav-link:hover::after,
+    .nav-link:focus::after {
+      width: 100%;
+    }
+
+    /* Contenido principal */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-xl) var(--spacing-md);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-xl);
+      align-items: center;
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .hero-content {
+      text-align: left;
+    }
+
+    .hero-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .card {
+      background-color: var(--color-bg-alt);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: var(--spacing-xxl);
+      margin-bottom: var(--spacing-lg);
+      border: 1px solid var(--color-border);
+      text-align: center;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+      position: relative;
+      font-size: var(--font-size-3xl);
+      font-weight: 700;
+    }
+
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 80px;
+      height: 4px;
+      background: linear-gradient(to right, var(--color-primary), var(--color-accent));
+      margin: var(--spacing-md) auto 0;
+      border-radius: 2px;
+    }
+
+    .description {
+      text-align: center;
+      margin-bottom: var(--spacing-xl);
+      color: var(--color-text-light);
+      font-size: var(--font-size-lg);
+      line-height: 1.7;
+    }
+
+    /* Formulario de búsqueda */
+    .search-container {
+      position: relative;
+      margin-bottom: var(--spacing-md);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: var(--spacing-lg);
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      font-family: inherit;
+      font-size: var(--font-size-lg);
+      transition: var(--transition-base);
+      background-color: var(--color-bg);
+      text-align: center;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+      background-color: var(--color-bg-alt);
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-light);
+    }
+
+    .search-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      color: white;
+      border: none;
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-base);
+      font-size: var(--font-size-lg);
+      margin-top: var(--spacing-md);
+    }
+
+    .search-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Estado de carga */
+    .status {
+      padding: var(--spacing-md);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--spacing-md);
+      text-align: center;
+      font-size: var(--font-size-base);
+      font-weight: 500;
+      display: none;
+    }
+
+    .status-loading {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--color-warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-error {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--color-error);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .status-success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--color-success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Resultados */
+    .results {
+      display: none;
+    }
+
+    .results.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 2px solid var(--color-border);
+    }
+
+    .results-title {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--color-text);
+    }
+
+    .results-count {
+      font-weight: 600;
+      color: var(--color-success);
+      background-color: rgba(16, 185, 129, 0.1);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+    }
+
+    .certificate-card {
+      background: linear-gradient(135deg, var(--color-bg-alt) 0%, rgba(37, 99, 235, 0.02) 100%);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      margin-bottom: var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--color-border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .certificate-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--color-primary), var(--color-accent));
+    }
+
+    .certificate-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .certificate-title {
+      font-weight: 700;
+      font-size: var(--font-size-xl);
+      color: var(--color-primary);
+      line-height: 1.3;
+    }
+
+    .certificate-valid {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
+      background: linear-gradient(135deg, var(--color-success), #0d966c);
+      color: white;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .certificate-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      padding: var(--spacing-sm);
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+    }
+
+    .detail-label {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-light);
+      margin-bottom: var(--spacing-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-weight: 600;
+      color: var(--color-text);
+      font-size: var(--font-size-base);
+    }
+
+    .no-results {
+      text-align: center;
+      padding: var(--spacing-xxl);
+      color: var(--color-text-light);
+    }
+
+    .no-results-icon {
+      font-size: 4rem;
+      margin-bottom: var(--spacing-lg);
+      opacity: 0.3;
+    }
+
+    .no-results-title {
+      font-size: var(--font-size-xl);
+      margin-bottom: var(--spacing-sm);
+      color: var(--color-text-light);
+    }
+
+    .no-results-text {
+      font-size: var(--font-size-base);
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: var(--color-bg-alt);
+      padding: var(--spacing-xl) 0;
+      border-top: 1px solid var(--color-border);
+      margin-top: auto;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--spacing-md);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--spacing-lg);
+    }
+
+    .footer-link {
+      color: var(--color-text-light);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      transition: var(--transition-base);
+      font-weight: 500;
+    }
+
+    .footer-link:hover {
+      color: var(--color-primary);
+    }
+
+    .copyright {
+      color: var(--color-text-light);
+      font-size: var(--font-size-sm);
+    }
+
+    /* Trust badges */
+    .trust-badges {
+      display: flex;
+      justify-content: center;
+      gap: var(--spacing-lg);
+      margin-top: var(--spacing-xl);
+      flex-wrap: wrap;
+    }
+
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-bg-alt);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+    }
+
+    .trust-icon {
+      color: var(--color-success);
+      font-size: 1.2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-container {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .nav {
+        gap: var(--spacing-md);
+        margin-top: var(--spacing-sm);
+      }
+
+      .hero-section {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .card {
+        padding: var(--spacing-xl);
+      }
+
+      .section-title {
+        font-size: var(--font-size-2xl);
+      }
+
+      .certificate-details {
+        grid-template-columns: 1fr;
+      }
+
+      .certificate-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .footer-container {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        text-align: center;
+      }
+
+      .footer-links {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+      }
+
+      .trust-badges {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    
+<div class="header-container"> <a href="https://www.procertinternational.org" class="logo"> 
+  <img src="fotos/Logoprocert.png" alt="ProCert International" width="320" height="320"> 
+  <span class="logo-text">ProCert International</span> </a> <nav class="nav"> 
+  <a href="https://www.procertinternational.org" class="nav-link">Inicio</a> <a href="https://www.procertinternational.org/#cursos" class="nav-link">Cursos</a> 
+  <a href="https://www.procertinternational.org/#contacto" class="nav-link">Contacto</a> 
+  </nav> </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <div class="hero-section">
+        <div class="hero-content">
+          <h1 class="section-title">Verificador de Certificados</h1>
+          <p class="description">
+            Verifique la autenticidad de los certificados emitidos por ProCert International. 
+            Nuestro sistema garantiza la validez oficial de todas las certificaciones.
+          </p>
+          
+          <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Ingrese el código del certificado">
+            <button id="searchBtn" class="search-btn">Verificar Autenticidad</button>
+          </div>
+
+          <div class="trust-badges">
+            <div class="trust-badge">
+              <span class="trust-icon">✓</span>
+              Certificados Oficiales
+            </div>
+            <div class="trust-badge">
+              <span class="trust-icon">✓</span>
+              Acreditación Internacional
+            </div>
+            <div class="trust-badge">
+              <span class="trust-icon">✓</span>
+              Verificación Segura
+            </div>
+          </div>
+        </div>
+        
+        <div class="hero-image">
+          <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Certificación Profesional" width="500" height="400">
+        </div>
+      </div>
+
+      <div id="status" class="status"></div>
+
+      <div id="results" class="results">
+        <div class="results-header">
+          <h2 class="results-title">Resultado de Verificación</h2>
+          <span id="resultsCount" class="results-count">Certificado Válido</span>
+        </div>
+        <div id="resultsList"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-links">
+        <a href="https://www.procertinternational.org/#faq" class="footer-link">Preguntas Frecuentes</a>
+        <a href="https://www.procertinternational.org/#contacto" class="footer-link">Contacto</a>
+        <a href="https://www.procertinternational.org/#acreditacion" class="footer-link">Acreditación</a>
+      </div>
+      <div class="copyright">
+        &copy; <span id="currentYear"></span> ProCert International. Todos los derechos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVQM_q5vqWgj5KIO18fa00MU7EIR4EbBiyCzes4KFXzivgZjpwDhthF-azzcE30lDnD4F_NixDyBC/pub?output=csv";
+    let registros = [];
+
+    // Actualizar año actual
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+    // Funciones para actualizar el estado
+    function updateStatus(message, type = '') {
+      const statusElement = document.getElementById('status');
+      statusElement.textContent = message;
+      statusElement.className = 'status';
+      statusElement.style.display = 'block';
+      
+      if (type) {
+        statusElement.classList.add(`status-${type}`);
+      }
+    }
+
+    async function carregarBase() {
+      try {
+        const resp = await fetch(CSV_URL);
+        if (!resp.ok) throw new Error("Error de conexión");
+        const csvText = await resp.text();
+        registros = parseCSV(csvText);
+        // No mostramos mensaje de éxito - completamente silencioso
+      } catch (err) {
+        console.error(err);
+        // Solo mostramos error si afecta la verificación
+      }
+    }
+
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+      const headers = lines[0].split(",").map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        let obj = {};
+        headers.forEach((h,i) => obj[h] = cols[i] ? cols[i].trim() : "");
+        return obj;
+      });
+    }
+
+    function pesquisar() {
+      const termo = document.getElementById('searchInput').value.trim();
+      if (!termo) {
+        updateStatus("Por favor, ingrese el código del certificado para verificar.", 'error');
+        return;
+      }
+      
+      const resultados = registros.filter(r => 
+        Object.values(r).some(v => v.toLowerCase() === termo.toLowerCase())
+      );
+      
+      const resultsElement = document.getElementById('results');
+      const resultsListElement = document.getElementById('resultsList');
+      const resultsCountElement = document.getElementById('resultsCount');
+      
+      resultsListElement.innerHTML = '';
+      
+      if (resultados.length === 0) {
+        updateStatus(`No se encontró ningún certificado con el código: ${termo}`, 'error');
+        resultsElement.classList.remove('active');
+        
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.innerHTML = `
+          <div class="no-results-icon">🔍</div>
+          <h3 class="no-results-title">Certificado No Encontrado</h3>
+          <p class="no-results-text">
+            El código <strong>${termo}</strong> no corresponde a ningún certificado emitido por ProCert International.<br>
+            Verifique el código e intente nuevamente.
+          </p>
+        `;
+        resultsListElement.appendChild(noResults);
+        resultsElement.classList.add('active');
+        return;
+      }
+      
+      // Actualizar contador
+      resultsCountElement.textContent = `${resultados.length} Certificado(s) Válido(s)`;
+      
+      // Mostrar resultados
+      resultados.forEach(r => {
+        const certificateCard = document.createElement('div');
+        certificateCard.className = 'certificate-card';
+        
+        const certificateHeader = document.createElement('div');
+        certificateHeader.className = 'certificate-header';
+        
+        const certificateTitle = document.createElement('div');
+        certificateTitle.className = 'certificate-title';
+        certificateTitle.textContent = r.Curso || r['Nombre del Curso'] || 'Certificado ProCert International';
+        
+        const certificateValid = document.createElement('div');
+        certificateValid.className = 'certificate-valid';
+        certificateValid.innerHTML = '<span>✓</span> AUTENTICADO';
+        
+        certificateHeader.appendChild(certificateTitle);
+        certificateHeader.appendChild(certificateValid);
+        
+        const certificateDetails = document.createElement('div');
+        certificateDetails.className = 'certificate-details';
+        
+        // Crear detalles del certificado
+        Object.entries(r).forEach(([key, value]) => {
+          if (value && key.toLowerCase() !== 'curso' && key.toLowerCase() !== 'nombre del curso') {
+            const detailItem = document.createElement('div');
+            detailItem.className = 'detail-item';
+            
+            const detailLabel = document.createElement('div');
+            detailLabel.className = 'detail-label';
+            detailLabel.textContent = key;
+            
+            const detailValue = document.createElement('div');
+            detailValue.className = 'detail-value';
+            detailValue.textContent = value;
+            
+            detailItem.appendChild(detailLabel);
+            detailItem.appendChild(detailValue);
+            certificateDetails.appendChild(detailItem);
+          }
+        });
+        
+        certificateCard.appendChild(certificateHeader);
+        certificateCard.appendChild(certificateDetails);
+        resultsListElement.appendChild(certificateCard);
+      });
+      
+      updateStatus(`Verificación completada exitosamente.`, 'success');
+      resultsElement.classList.add('active');
+    }
+
+    // Event listeners
+    document.getElementById('searchBtn').addEventListener('click', pesquisar);
+    document.getElementById('searchInput').addEventListener('keypress', (e) => { 
+      if (e.key === 'Enter') pesquisar(); 
+    });
+
+    // Cargar base inicial automáticamente (silenciosamente)
+    carregarBase();
+  </script>
+</body>
+</html>
