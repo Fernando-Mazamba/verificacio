@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Verificador de Certificados</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:980px;margin:24px auto;padding:0 16px;color:#111}
+  h1{font-size:1.4rem;margin-bottom:6px}
+  p.small{color:#444;margin-top:0;font-size:0.9rem}
+  #controls{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  input[type="search"]{flex:1;padding:10px;border:1px solid #ddd;border-radius:6px}
+  button, select{padding:10px;border-radius:6px;border:1px solid #ccc;background:#fafafa;cursor:pointer}
+  #status{margin:8px 0;color:#666}
+  table{width:100%;border-collapse:collapse;margin-top:12px}
+  th,td{padding:8px;border:1px solid #eee;text-align:left;font-size:0.95rem}
+  mark, .hl{background: #ffea8a; padding:0 2px; border-radius:3px}
+  .notfound{color:#b00;font-weight:600;margin-top:10px}
+  .small-muted{font-size:0.9rem;color:#666}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .copyBtn{padding:6px 8px;font-size:0.9rem}
+</style>
+</head>
+<body>
+  <h1>Verificador de Certificados</h1>
+  <p class="small">Procura um certificado pelo número, nome do aluno, curso, data, etc. A base de dados é carregada do Google Sheets (CSV público).</p>
+
+  <div id="controls">
+    <input id="query" type="search" placeholder="Número do certificado, nome, curso ou outro..." />
+    <select id="fieldSelect"><option value="">Pesquisar em todos os campos</option></select>
+    <button id="searchBtn">Pesquisar</button>
+    <button id="refreshBtn" title="Recarregar base">Recarregar</button>
+  </div>
+
+  <div class="actions">
+    <div id="status">Carregando base de dados...</div>
+    <div class="small-muted" id="count"></div>
+  </div>
+
+  <div id="results"></div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMVQM_q5vqWgj5KIO18fa00MU7EIR4EbBiyCzes4KFXzivgZjpwDhthF-azzcE30lDnD4F_NixDyBC/pub?output=csv';
+
+let headersDisplay = [];   
+let headersNorm = [];      
+let rows = [];             
+const statusEl = document.getElementById('status');
+const resultsEl = document.getElementById('results');
+const fieldSelect = document.getElementById('fieldSelect');
+const countEl = document.getElementById('count');
+
+function escapeHtml(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function splitCSVLine(line){
+  const res = [];
+  let cur = '';
+  let inQuotes = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(line[i+1] === '"'){ cur += '"'; i++; } else { inQuotes = false; }
+      } else { cur += ch; }
+    } else {
+      if(ch === '"'){ inQuotes = true; }
+      else if(ch === ','){ res.push(cur); cur = ''; }
+      else cur += ch;
+    }
+  }
+  res.push(cur);
+  return res;
+}
+
+function parseCSV(text){
+  text = text.replace(/^\uFEFF/, '');
+  const lines = text.split(/\r\n|\n/);
+  if(lines.length === 0) return {headers:[], rows:[]};
+  let headerLineIndex = 0;
+  while(headerLineIndex < lines.length && !lines[headerLineIndex].trim()) headerLineIndex++;
+  if(headerLineIndex >= lines.length) return {headers:[], rows:[]};
+
+  const headerRaw = splitCSVLine(lines[headerLineIndex]);
+  const headers = headerRaw.map(h => h.trim());
+  const headersN = headers.map(h => h.toLowerCase().replace(/\s+/g,'_').replace(/[^\w_]/g,''));
+
+  const data = [];
+  for(let i = headerLineIndex + 1; i < lines.length; i++){
+    const line = lines[i];
+    if(!line.trim()) continue;
+    const values = splitCSVLine(line);
+    const obj = {};
+    for(let j=0;j<headersN.length;j++){
+      obj[headersN[j]] = values[j] !== undefined ? values[j].trim() : '';
+    }
+    data.push(obj);
+  }
+  return {headers, rows: data, headersNorm: headersN};
+}
+
+function detectPrimaryKey(headersNorm){
+  const candidates = ['id','certificado','numero','n_certificado','numero_certificado','cert_number','certificate_id'];
+  for(const c of candidates) if(headersNorm.includes(c)) return c;
+  return headersNorm.length ? headersNorm[0] : null;
+}
+
+async function loadData(){
+  statusEl.textContent = 'Carregando base de dados (CSV)...';
+  try {
+    const resp = await fetch(CSV_URL);
+    if(!resp.ok) throw new Error('Resposta não OK: ' + resp.status);
+    const txt = await resp.text();
+    const parsed = parseCSV(txt);
+    headersDisplay = parsed.headers || [];
+    headersNorm = parsed.headersNorm || parsed.rows?.length ? Object.keys(parsed.rows[0] || {}) : [];
+    rows = parsed.rows || [];
+    statusEl.textContent = `Base carregada: ${rows.length} registos.`;
+    populateFieldSelect();
+    countEl.textContent = `${rows.length} registos carregados.`;
+    const params = new URLSearchParams(location.search);
+    if(params.get('id')) {
+      document.getElementById('query').value = params.get('id');
+      doSearch();
+    } else if(params.get('q')){
+      document.getElementById('query').value = params.get('q');
+      doSearch();
+    } else {
+      showTopRows(10);
+    }
+  } catch (err){
+    console.error(err);
+    statusEl.textContent = 'Erro ao carregar CSV: ' + err.message;
+    resultsEl.innerHTML = '';
+    countEl.textContent = '';
+  }
+}
+
+function populateFieldSelect(){
+  fieldSelect.innerHTML = '<option value="">Pesquisar em todos os campos</option>';
+  const hNorm = headersNorm.length ? headersNorm : (rows[0] ? Object.keys(rows[0]) : []);
+  const hDisplay = headersDisplay.length ? headersDisplay : hNorm;
+  for(let i=0;i<hNorm.length;i++){
+    const d = hDisplay[i] || hNorm[i];
+    const opt = document.createElement('option');
+    opt.value = hNorm[i];
+    opt.textContent = d;
+    fieldSelect.appendChild(opt);
+  }
+}
+
+function showTopRows(n){
+  const sample = rows.slice(0,n);
+  if(sample.length === 0){ resultsEl.innerHTML = '<div class="notfound">A base está vazia.</div>'; return; }
+  renderTable(sample, '');
+}
+
+function doSearch(){
+  const q = document.getElementById('query').value.trim();
+  const field = fieldSelect.value;
+  if(!q){
+    showTopRows(10);
+    return;
+  }
+  const qLow = q.toLowerCase();
+  const filtered = rows.filter(r => {
+    if(field){
+      const v = (r[field] || '').toString().toLowerCase();
+      return v.includes(qLow);
+    } else {
+      return Object.values(r).some(v => (v||'').toString().toLowerCase().includes(qLow));
+    }
+  });
+  if(filtered.length === 0){
+    resultsEl.innerHTML = `<div class="notfound">Nenhum certificado encontrado para "<strong>${escapeHtml(q)}</strong>".</div>`;
+    countEl.textContent = `0 resultados`;
+  } else {
+    renderTable(filtered, q);
+    countEl.textContent = `${filtered.length} resultados`;
+  }
+}
+
+function renderTable(data, q){
+  const pk = detectPrimaryKey(Object.keys(data[0] || {}));
+  const qEsc = q ? escapeRegExp(q) : null;
+  let html = '<table><thead><tr>';
+  const cols = Object.keys(data[0]);
+  for(let c of cols){
+    const idx = headersNorm.indexOf(c);
+    const label = (idx !== -1 && headersDisplay[idx]) ? headersDisplay[idx] : c;
+    html += `<th>${escapeHtml(label)}</th>`;
+  }
+  html += '</tr></thead><tbody>';
+  for(const row of data){
+    html += '<tr>';
+    for(const c of cols){
+      const raw = row[c] || '';
+      let cell = escapeHtml(raw);
+      if(q && qEsc){
+        const re = new RegExp(qEsc,'ig');
+        cell = cell.replace(re, m => `<span class="hl">${m}</span>`);
+      }
+      html += `<td>${cell}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  if(pk){
+    const linkExample = `${location.origin}${location.pathname}?id=VALOR_DO_${pk}`;
+    html += `<p class="small-muted">Link de verificação directo (exemplo): <code>${escapeHtml(linkExample)}</code></p>`;
+  }
+  resultsEl.innerHTML = html;
+}
+
+document.getElementById('searchBtn').addEventListener('click', doSearch);
+document.getElementById('query').addEventListener('keyup', e => { if(e.key === 'Enter') doSearch(); });
+document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+loadData();
+</script>
+</body>
+</html>
